@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wedding Cam</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F0E8;
+    --bg-dark: #EDE7DB;
+    --film: #1A1A18;
+    --film-mid: #2D2B28;
+    --cream: #F5F0E8;
+    --warm: #E8DFD0;
+    --gold: #D4A843;
+    --gold-dim: #B8923A;
+    --flash: #FFFBE6;
+    --green-led: #7BCC70;
+    --red-led: #E85D4A;
+    --text: #2D2B28;
+    --text-light: #8A857A;
+    --grain-opacity: 0.04;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+
+  /* Film grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; min-height: 100dvh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ═══════════════════════════════════════
+     WELCOME SCREEN
+     ═══════════════════════════════════════ */
+  #welcome-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    background: var(--film);
+    color: var(--cream);
+  }
+
+  .welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 100px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+    animation: fadeIn 0.8s ease 0.2s both;
+  }
+  .welcome-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+  }
+
+  .welcome-names {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 10vw, 56px);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    animation: fadeIn 0.8s ease 0.4s both;
+  }
+  .welcome-names em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .welcome-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: rgba(245,240,232,0.4);
+    margin-bottom: 48px;
+    animation: fadeIn 0.8s ease 0.6s both;
+  }
+
+  .welcome-input-group {
+    width: 100%;
+    max-width: 320px;
+    animation: fadeIn 0.8s ease 0.8s both;
+  }
+  .welcome-label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.35);
+    margin-bottom: 10px;
+    text-align: left;
+  }
+  .welcome-input {
+    width: 100%;
+    padding: 16px 20px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 16px;
+    background: rgba(245,240,232,0.06);
+    border: 1px solid rgba(245,240,232,0.12);
+    border-radius: 12px;
+    color: var(--cream);
+    outline: none;
+    transition: all 0.3s;
+    margin-bottom: 16px;
+  }
+  .welcome-input::placeholder { color: rgba(245,240,232,0.2); }
+  .welcome-input:focus {
+    border-color: var(--gold);
+    background: rgba(212,168,67,0.06);
+    box-shadow: 0 0 0 4px rgba(212,168,67,0.08);
+  }
+
+  .welcome-start-btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--gold);
+    color: var(--film);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .welcome-start-btn:hover {
+    background: #E0B44E;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(212,168,67,0.3);
+  }
+  .welcome-start-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .welcome-shots-info {
+    margin-top: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,240,232,0.25);
+    animation: fadeIn 0.8s ease 1s both;
+  }
+
+  /* ═══════════════════════════════════════
+     CAMERA SCREEN
+     ═══════════════════════════════════════ */
+  #camera-screen {
+    background: var(--film);
+    position: relative;
+  }
+
+  .camera-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(26,26,24,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+  .camera-guest-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,240,232,0.5);
+    letter-spacing: 0.05em;
+  }
+  .shot-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cream);
+  }
+  .shot-counter .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green-led);
+    box-shadow: 0 0 6px var(--green-led);
+  }
+  .shot-counter.low .dot {
+    background: var(--red-led);
+    box-shadow: 0 0 6px var(--red-led);
+    animation: pulse-dot 1s infinite;
+  }
+
+  .camera-viewfinder {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #000;
+  }
+  .camera-viewfinder video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Viewfinder frame corners */
+  .vf-corners {
+    position: absolute;
+    inset: 24px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .vf-corners::before, .vf-corners::after,
+  .vf-corner-bl, .vf-corner-br {
+    position: absolute;
+    width: 24px; height: 24px;
+    border-color: rgba(245,240,232,0.25);
+    border-style: solid;
+  }
+  .vf-corners::before {
+    content: '';
+    top: 0; left: 0;
+    border-width: 1.5px 0 0 1.5px;
+  }
+  .vf-corners::after {
+    content: '';
+    top: 0; right: 0;
+    border-width: 1.5px 1.5px 0 0;
+  }
+  .vf-corner-bl {
+    bottom: 0; left: 0;
+    border-width: 0 0 1.5px 1.5px;
+  }
+  .vf-corner-br {
+    bottom: 0; right: 0;
+    border-width: 0 1.5px 1.5px 0;
+  }
+
+  /* Flash animation */
+  .flash-overlay {
+    position: absolute;
+    inset: 0;
+    background: white;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .flash-overlay.flash {
+    animation: flashAnim 0.4s ease-out;
+  }
+
+  .camera-bottom-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px 24px 36px;
+    background: rgba(26,26,24,0.95);
+    backdrop-filter: blur(10px);
+  }
+
+  .cam-side-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(245,240,232,0.08);
+    color: var(--cream);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .cam-side-btn:hover { background: rgba(245,240,232,0.15); }
+  .cam-side-btn svg { width: 20px; height: 20px; }
+
+  .shutter-btn {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--cream);
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .shutter-btn::after {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: var(--cream);
+    transition: all 0.15s;
+  }
+  .shutter-btn:active {
+    transform: scale(0.92);
+  }
+  .shutter-btn:active::after {
+    background: var(--gold);
+  }
+  .shutter-btn:disabled {
+    border-color: rgba(245,240,232,0.2);
+    cursor: not-allowed;
+  }
+  .shutter-btn:disabled::after {
+    background: rgba(245,240,232,0.2);
+  }
+
+  /* Camera not available fallback */
+  .camera-fallback {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+    color: var(--cream);
+  }
+  .camera-fallback-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(245,240,232,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .camera-fallback-icon svg { width: 28px; height: 28px; color: var(--gold); }
+  .camera-fallback h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+  .camera-fallback p {
+    font-size: 14px;
+    color: rgba(245,240,232,0.5);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .upload-fallback-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--gold);
+    color: var(--film);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .upload-fallback-btn:hover { background: #E0B44E; }
+  .upload-fallback-btn input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* ═══════════════════════════════════════
+     GALLERY SCREEN
+     ═══════════════════════════════════════ */
+  #gallery-screen {
+    background: var(--bg);
+    min-height: 100dvh;
+  }
+
+  .gallery-top {
+    padding: 24px 20px 16px;
+    text-align: center;
+  }
+  .gallery-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    margin-bottom: 2px;
+  }
+  .gallery-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+  }
+
+  .gallery-grid {
+    padding: 8px 8px 100px;
+    columns: 2;
+    column-gap: 8px;
+  }
+  @media (min-width: 480px) {
+    .gallery-grid { columns: 3; column-gap: 10px; }
+  }
+
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--warm);
+    cursor: pointer;
+    transition: transform 0.3s;
+    animation: filmDevelop 1s ease both;
+    position: relative;
+  }
+  .gallery-item:hover { transform: scale(1.015); }
+  .gallery-item img {
+    width: 100%;
+    display: block;
+    filter: saturate(0.9) contrast(1.05);
+  }
+  .gallery-item-meta {
+    padding: 8px 10px;
+    background: white;
+  }
+  .gallery-item-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .gallery-item-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--text-light);
+    letter-spacing: 0.05em;
+    margin-top: 1px;
+  }
+
+  .gallery-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    text-align: center;
+  }
+  .gallery-empty-film {
+    width: 80px; height: 52px;
+    background: var(--film);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gallery-empty-film::before, .gallery-empty-film::after {
+    content: '';
+    position: absolute;
+    top: 4px; bottom: 4px;
+    width: 8px;
+    background: repeating-linear-gradient(to bottom, var(--film-mid) 0px, var(--film-mid) 3px, transparent 3px, transparent 6px);
+  }
+  .gallery-empty-film::before { left: 2px; }
+  .gallery-empty-film::after { right: 2px; }
+  .gallery-empty-film span {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: rgba(245,240,232,0.4);
+    letter-spacing: 0.1em;
+  }
+  .gallery-empty h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .gallery-empty p {
+    font-size: 14px;
+    color: var(--text-light);
+  }
+
+  /* ═══════════════════════════════════════
+     QR SCREEN
+     ═══════════════════════════════════════ */
+  #qr-screen {
+    background: var(--bg);
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .qr-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .qr-subtext {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+  .qr-card {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+  .qr-card canvas { border-radius: 4px; }
+  .qr-url {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-light);
+    word-break: break-all;
+    max-width: 340px;
+    margin: 0 auto 20px;
+    padding: 12px 16px;
+    background: var(--warm);
+    border-radius: 8px;
+  }
+  .qr-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .qr-btn {
+    padding: 10px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 8px;
+    border: 1.5px solid var(--text);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .qr-btn:hover {
+    background: var(--text);
+    color: var(--cream);
+  }
+  .qr-btn.primary {
+    background: var(--text);
+    color: var(--cream);
+    border-color: var(--text);
+  }
+  .qr-btn.primary:hover {
+    background: var(--gold-dim);
+    border-color: var(--gold-dim);
+  }
+
+  /* ═══════════════════════════════════════
+     BOTTOM NAV
+     ═══════════════════════════════════════ */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(245,240,232,0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(45,43,40,0.08);
+  }
+  .bottom-nav.hidden { display: none; }
+
+  .bnav-btn {
+    flex: 1;
+    max-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .bnav-btn svg { width: 22px; height: 22px; }
+  .bnav-btn.active {
+    color: var(--text);
+    background: rgba(45,43,40,0.06);
+  }
+
+  /* ═══════════════════════════════════════
+     LIGHTBOX
+     ═══════════════════════════════════════ */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(26,26,24,0.95);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    filter: saturate(0.9) contrast(1.05);
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(245,240,232,0.1);
+    border: none;
+    color: var(--cream);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-meta {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: rgba(245,240,232,0.6);
+  }
+  .lightbox-meta-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cream);
+  }
+  .lightbox-meta-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ═══════════════════════════════════════
+     TOAST
+     ═══════════════════════════════════════ */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-60px);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 12px 24px;
+    border-radius: 100px;
+    z-index: 600;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.success {
+    background: var(--film);
+    color: var(--green-led);
+  }
+  .toast.info {
+    background: var(--film);
+    color: var(--gold);
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes flashAnim {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  @keyframes filmDevelop {
+    0% { opacity: 0; filter: blur(4px) brightness(2); }
+    60% { filter: blur(0) brightness(1.2); }
+    100% { opacity: 1; filter: blur(0) brightness(1); }
+  }
+
+  /* ── Print ── */
+  @media print {
+    .bottom-nav, #camera-screen, #gallery-screen { display: none !important; }
+    #qr-screen { display: flex !important; }
+    .qr-actions { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ WELCOME ═══ -->
+<div id="welcome-screen" class="screen active">
+  <div class="welcome-badge">Live Now</div>
+  <h1 class="welcome-names">Bride <em>&</em> Groom</h1>
+  <p class="welcome-date">25 &middot; 12 &middot; 2026</p>
+
+  <div class="welcome-input-group">
+    <label class="welcome-label" for="name-input">Enter your name to start</label>
+    <input class="welcome-input" id="name-input" type="text" placeholder="Your name" autocomplete="name">
+    <button class="welcome-start-btn" id="start-btn" disabled>Open Camera</button>
+  </div>
+
+  <p class="welcome-shots-info">You have <strong>15 shots</strong> — make them count!</p>
+</div>
+
+<!-- ═══ CAMERA ═══ -->
+<div id="camera-screen" class="screen">
+  <div class="camera-top-bar">
+    <span class="camera-guest-name" id="cam-guest-name"></span>
+    <div class="shot-counter" id="shot-counter">
+      <span class="dot"></span>
+      <span id="shots-left">15</span> left
+    </div>
+  </div>
+
+  <!-- Live viewfinder -->
+  <div class="camera-viewfinder" id="viewfinder-container">
+    <video id="camera-feed" autoplay playsinline muted></video>
+    <div class="vf-corners">
+      <div class="vf-corner-bl"></div>
+      <div class="vf-corner-br"></div>
+    </div>
+    <div class="flash-overlay" id="flash-overlay"></div>
+  </div>
+
+  <!-- Fallback for no camera access -->
+  <div class="camera-fallback" id="camera-fallback" style="display:none;">
+    <div class="camera-fallback-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/></svg>
+    </div>
+    <h3>Camera not available</h3>
+    <p>No worries — pick your best shots<br>from your photo gallery instead</p>
+    <label class="upload-fallback-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
+      Choose Photos
+      <input type="file" accept="image/*" multiple id="gallery-upload">
+    </label>
+  </div>
+
+  <div class="camera-bottom-bar" id="camera-controls">
+    <button class="cam-side-btn" id="switch-cam-btn" title="Switch camera">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+    </button>
+    <button class="shutter-btn" id="shutter-btn" title="Take photo"></button>
+    <button class="cam-side-btn" id="upload-btn-cam" title="Upload from gallery" style="position:relative;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+      <input type="file" accept="image/*" multiple id="gallery-upload-cam" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+    </button>
+  </div>
+</div>
+
+<!-- ═══ GALLERY ═══ -->
+<div id="gallery-screen" class="screen">
+  <div class="gallery-top">
+    <h2 class="gallery-title">Our Gallery</h2>
+    <p class="gallery-count" id="gallery-count">0 moments captured</p>
+  </div>
+  <div id="gallery-content"></div>
+</div>
+
+<!-- ═══ QR CODE ═══ -->
+<div id="qr-screen" class="screen">
+  <h2 class="qr-heading">Share the Camera</h2>
+  <p class="qr-subtext">Place this QR code on tables so<br>guests can start snapping photos</p>
+  <div class="qr-card"><canvas id="qr-canvas"></canvas></div>
+  <div class="qr-url" id="qr-url-display"></div>
+  <div class="qr-actions">
+    <button class="qr-btn primary" onclick="window.print()">Print QR</button>
+    <button class="qr-btn" id="copy-link-btn">Copy Link</button>
+  </div>
+</div>
+
+<!-- ═══ BOTTOM NAV ═══ -->
+<nav class="bottom-nav hidden" id="bottom-nav">
+  <button class="bnav-btn" data-screen="camera" onclick="showScreen('camera')">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/></svg>
+    Camera
+  </button>
+  <button class="bnav-btn" data-screen="gallery" onclick="showScreen('gallery')">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+    Gallery
+  </button>
+  <button class="bnav-btn" data-screen="qr" onclick="showScreen('qr')">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5Zm0 9.75c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5Zm9.75-9.75c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 13.875h2.25v2.25M13.5 20.25h6.75v-2.25m0-4.5v2.25h-2.25"/></svg>
+    QR Code
+  </button>
+</nav>
+
+<!-- ═══ LIGHTBOX ═══ -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-meta">
+    <div class="lightbox-meta-name" id="lb-name"></div>
+    <div class="lightbox-meta-time" id="lb-time"></div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast" id="toast"></div>
+
+<canvas id="capture-canvas" style="display:none;"></canvas>
+<input type="file" id="hidden-file-input" accept="image/*" capture="environment" style="display:none;">
+
+<!-- QR Code library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+<script>
+// ── App State ──
+const MAX_SHOTS = 15;
+let guestName = '';
+let shotsRemaining = MAX_SHOTS;
+let photos = []; // { dataUrl, name, timestamp }
+let cameraStream = null;
+let facingMode = 'environment';
+let cameraAvailable = false;
+
+// ── DOM refs ──
+const nameInput = document.getElementById('name-input');
+const startBtn = document.getElementById('start-btn');
+const videoEl = document.getElementById('camera-feed');
+const shutterBtn = document.getElementById('shutter-btn');
+const flashOverlay = document.getElementById('flash-overlay');
+const captureCanvas = document.getElementById('capture-canvas');
+const shotCounterEl = document.getElementById('shot-counter');
+const shotsLeftEl = document.getElementById('shots-left');
+const galleryContent = document.getElementById('gallery-content');
+const galleryCountEl = document.getElementById('gallery-count');
+const bottomNav = document.getElementById('bottom-nav');
+const toast = document.getElementById('toast');
+
+// ── Welcome Screen ──
+nameInput.addEventListener('input', () => {
+  startBtn.disabled = nameInput.value.trim().length === 0;
+});
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && nameInput.value.trim()) startCamera();
+});
+startBtn.addEventListener('click', startCamera);
+
+async function startCamera() {
+  guestName = nameInput.value.trim();
+  document.getElementById('cam-guest-name').textContent = guestName;
+  showScreen('camera');
+  bottomNav.classList.remove('hidden');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    videoEl.srcObject = cameraStream;
+    cameraAvailable = true;
+    document.getElementById('viewfinder-container').style.display = '';
+    document.getElementById('camera-fallback').style.display = 'none';
+    document.getElementById('camera-controls').style.display = '';
+  } catch (err) {
+    console.log('Camera not available:', err);
+    cameraAvailable = false;
+    document.getElementById('viewfinder-container').style.display = 'none';
+    document.getElementById('camera-fallback').style.display = 'flex';
+    document.getElementById('camera-controls').style.display = 'none';
+  }
+}
+
+// ── Screen Navigation ──
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`${name}-screen`).classList.add('active');
+  document.querySelectorAll('.bnav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === name);
+  });
+  if (name === 'gallery') renderGallery();
+  if (name === 'qr') generateQR();
+
+  // Hide nav bar on camera for immersion (still show it)
+  if (name === 'camera' && cameraAvailable) {
+    bottomNav.style.background = 'rgba(26,26,24,0.9)';
+    bottomNav.style.borderTopColor = 'rgba(245,240,232,0.05)';
+    bottomNav.querySelectorAll('.bnav-btn').forEach(b => {
+      b.style.color = b.classList.contains('active') ? '#F5F0E8' : 'rgba(245,240,232,0.4)';
+    });
+  } else {
+    bottomNav.style.background = '';
+    bottomNav.style.borderTopColor = '';
+    bottomNav.querySelectorAll('.bnav-btn').forEach(b => b.style.color = '');
+  }
+}
+
+// ── Shutter ──
+shutterBtn.addEventListener('click', takePhoto);
+
+function takePhoto() {
+  if (shotsRemaining <= 0 || !cameraAvailable) return;
+
+  // Flash effect
+  flashOverlay.classList.add('flash');
+  setTimeout(() => flashOverlay.classList.remove('flash'), 500);
+
+  // Capture frame
+  const vw = videoEl.videoWidth;
+  const vh = videoEl.videoHeight;
+  captureCanvas.width = vw;
+  captureCanvas.height = vh;
+  const ctx = captureCanvas.getContext('2d');
+  ctx.drawImage(videoEl, 0, 0, vw, vh);
+
+  const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.85);
+  addPhoto(dataUrl);
+}
+
+function addPhoto(dataUrl) {
+  if (shotsRemaining <= 0) return;
+
+  photos.unshift({
+    dataUrl,
+    name: guestName,
+    timestamp: Date.now()
+  });
+
+  shotsRemaining--;
+  updateShotCounter();
+
+  if (shotsRemaining <= 0) {
+    shutterBtn.disabled = true;
+    showToast("That's a wrap! All shots used", 'info');
+  } else {
+    showToast(`Shot captured! ${shotsRemaining} left`, 'success');
+  }
+}
+
+function updateShotCounter() {
+  shotsLeftEl.textContent = shotsRemaining;
+  shotCounterEl.classList.toggle('low', shotsRemaining <= 3);
+}
+
+// ── Switch Camera ──
+document.getElementById('switch-cam-btn').addEventListener('click', async () => {
+  if (!cameraStream) return;
+  cameraStream.getTracks().forEach(t => t.stop());
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    videoEl.srcObject = cameraStream;
+  } catch (err) {
+    showToast('Could not switch camera', 'info');
+  }
+});
+
+// ── Gallery Upload (fallback + camera side button) ──
+document.getElementById('gallery-upload').addEventListener('change', handleFileUpload);
+document.getElementById('gallery-upload-cam').addEventListener('change', handleFileUpload);
+
+function handleFileUpload(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  files.forEach(file => {
+    if (shotsRemaining <= 0) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      addPhoto(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+// ── Gallery Render ──
+function renderGallery() {
+  galleryCountEl.textContent = `${photos.length} moment${photos.length !== 1 ? 's' : ''} captured`;
+
+  if (photos.length === 0) {
+    galleryContent.innerHTML = `
+      <div class="gallery-empty">
+        <div class="gallery-empty-film"><span>EMPTY</span></div>
+        <h3>No photos yet</h3>
+        <p>Be the first to capture a moment!</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '<div class="gallery-grid">';
+  photos.forEach((photo, i) => {
+    const time = new Date(photo.timestamp);
+    const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    html += `
+      <div class="gallery-item" onclick="openLightbox(${i})" style="animation-delay:${i * 0.08}s">
+        <img src="${photo.dataUrl}" alt="Photo by ${photo.name}" loading="lazy">
+        <div class="gallery-item-meta">
+          <div class="gallery-item-name">${escHtml(photo.name)}</div>
+          <div class="gallery-item-time">${timeStr}</div>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  galleryContent.innerHTML = html;
+}
+
+// ── Lightbox ──
+function openLightbox(index) {
+  const photo = photos[index];
+  document.getElementById('lightbox-img').src = photo.dataUrl;
+  document.getElementById('lb-name').textContent = photo.name;
+  const t = new Date(photo.timestamp);
+  document.getElementById('lb-time').textContent = t.toLocaleString([], {
+    hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric'
+  });
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.getElementById('lightbox').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeLightbox();
+});
+
+// ── QR Code ──
+function generateQR() {
+  const url = window.location.href;
+  document.getElementById('qr-url-display').textContent = url;
+  try {
+    new QRious({
+      element: document.getElementById('qr-canvas'),
+      value: url,
+      size: 220,
+      backgroundAlpha: 0,
+      foreground: '#2D2B28',
+      level: 'M'
+    });
+  } catch(e) {
+    document.getElementById('qr-canvas').parentElement.innerHTML = '<p style="padding:20px;color:#8A857A;">QR library could not load.<br>Share the link directly instead.</p>';
+  }
+}
+document.getElementById('copy-link-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    showToast('Link copied!', 'success');
+  }).catch(() => {
+    showToast('Could not copy link', 'info');
+  });
+});
+
+// ── Toast ──
+function showToast(msg, type = 'success') {
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+// ── Utils ──
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
