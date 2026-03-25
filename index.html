@@ -1016,6 +1016,7 @@
 <div id="admin-screen" class="screen">
   <div class="admin-header">
     <span class="admin-header-title">Admin</span>
+    <span id="admin-photo-count" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-light);"></span>
     <span id="admin-sel-count" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-light);"></span>
   </div>
   <div class="admin-toolbar">
@@ -1435,6 +1436,7 @@ function checkAdminPassword() {
 }
 
 function renderAdminGrid() {
+  document.getElementById('admin-photo-count').textContent = `${photos.length} photo${photos.length !== 1 ? 's' : ''}`;
   const container = document.getElementById('admin-grid-content');
   if (photos.length === 0) {
     container.innerHTML = '<p style="padding:60px;text-align:center;color:var(--text-light);font-family:\'Space Mono\',monospace;font-size:12px;">No photos yet</p>';
