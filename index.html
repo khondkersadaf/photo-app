@@ -586,6 +586,165 @@
   }
 
   /* ═══════════════════════════════════════
+     ADMIN
+     ═══════════════════════════════════════ */
+  .admin-pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+  }
+  .admin-pw-overlay.visible { display: flex; }
+  .admin-pw-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .admin-pw-sub {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 32px;
+  }
+  .admin-pw-input {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px 16px;
+    font-size: 16px;
+    border: 1.5px solid var(--bg-dark);
+    border-radius: 10px;
+    background: white;
+    color: var(--text);
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .admin-pw-input:focus { border-color: var(--text); }
+  .admin-pw-btn {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--text);
+    color: var(--cream);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .admin-pw-error {
+    color: #e53e3e;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  #admin-screen { background: var(--bg); }
+  .admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--bg-dark);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .admin-header-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .admin-toolbar {
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--bg);
+    border-bottom: 1px solid var(--bg-dark);
+  }
+  .admin-btn {
+    padding: 8px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 8px;
+    border: 1.5px solid var(--text);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .admin-btn.primary { background: var(--text); color: var(--cream); }
+  .admin-btn.danger { border-color: #dc2626; color: #dc2626; }
+  .admin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .admin-grid {
+    padding: 8px 8px 40px;
+    columns: 2;
+    column-gap: 8px;
+  }
+  @media (min-width: 480px) { .admin-grid { columns: 3; } }
+  .admin-item {
+    break-inside: avoid;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    background: var(--warm);
+  }
+  .admin-item img { width: 100%; display: block; }
+  .admin-item-meta {
+    padding: 6px 8px;
+    background: white;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .admin-check {
+    position: absolute;
+    top: 8px; left: 8px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.8);
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: white;
+    transition: all 0.15s;
+  }
+  .admin-item.selected .admin-check {
+    background: var(--text);
+    border-color: var(--text);
+  }
+  .admin-item.selected::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2.5px solid var(--text);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  /* ═══════════════════════════════════════
      BOTTOM NAV
      ═══════════════════════════════════════ */
   .bottom-nav {
@@ -844,6 +1003,29 @@
   </div>
 </div>
 
+<!-- ═══ ADMIN PASSWORD OVERLAY ═══ -->
+<div class="admin-pw-overlay" id="admin-pw-overlay">
+  <h2 class="admin-pw-title">Admin</h2>
+  <p class="admin-pw-sub">Enter password to manage photos</p>
+  <input class="admin-pw-input" type="password" id="admin-pw-input" placeholder="Password" onkeydown="if(event.key==='Enter') checkAdminPassword()">
+  <button class="admin-pw-btn" onclick="checkAdminPassword()">Enter</button>
+  <p class="admin-pw-error" id="admin-pw-error">Incorrect password</p>
+</div>
+
+<!-- ═══ ADMIN SCREEN ═══ -->
+<div id="admin-screen" class="screen">
+  <div class="admin-header">
+    <span class="admin-header-title">Admin</span>
+    <span id="admin-sel-count" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-light);"></span>
+  </div>
+  <div class="admin-toolbar">
+    <button class="admin-btn" onclick="adminSelectAll()">Select All</button>
+    <button class="admin-btn danger" id="admin-del-btn" onclick="adminDeleteSelected()" disabled>Delete</button>
+    <button class="admin-btn primary" onclick="adminDownloadAll()">Download All</button>
+  </div>
+  <div id="admin-grid-content"></div>
+</div>
+
 <!-- ═══ BOTTOM NAV ═══ -->
 <nav class="bottom-nav hidden" id="bottom-nav">
   <button class="bnav-btn" data-screen="camera" onclick="showScreen('camera')">
@@ -882,6 +1064,8 @@
 
 <!-- QR Code library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<!-- JSZip for admin download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1072,9 +1256,8 @@ function updateShotCounter() {
 db.collection('photos').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
   photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   galleryCountEl.textContent = `${photos.length} moment${photos.length !== 1 ? 's' : ''} captured`;
-  if (document.getElementById('gallery-screen').classList.contains('active')) {
-    renderGallery();
-  }
+  if (document.getElementById('gallery-screen').classList.contains('active')) renderGallery();
+  if (document.getElementById('admin-screen').classList.contains('active')) renderAdminGrid();
 });
 
 // ── Switch Camera ──
@@ -1220,6 +1403,108 @@ function escHtml(str) {
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
+}
+
+// ── Admin ──
+const ADMIN_PASSWORD = 'wedding2025';
+let adminSelected = new Set();
+
+if (new URLSearchParams(window.location.search).has('admin')) {
+  document.getElementById('admin-pw-overlay').classList.add('visible');
+}
+
+function checkAdminPassword() {
+  const val = document.getElementById('admin-pw-input').value;
+  if (val === ADMIN_PASSWORD) {
+    document.getElementById('admin-pw-overlay').classList.remove('visible');
+    bottomNav.classList.add('hidden');
+    showScreen('admin');
+    renderAdminGrid();
+  } else {
+    document.getElementById('admin-pw-error').style.display = 'block';
+  }
+}
+
+function renderAdminGrid() {
+  const container = document.getElementById('admin-grid-content');
+  if (photos.length === 0) {
+    container.innerHTML = '<p style="padding:60px;text-align:center;color:var(--text-light);font-family:\'Space Mono\',monospace;font-size:12px;">No photos yet</p>';
+    return;
+  }
+  let html = '<div class="admin-grid">';
+  photos.forEach(photo => {
+    const sel = adminSelected.has(photo.id);
+    html += `
+      <div class="admin-item ${sel ? 'selected' : ''}" onclick="adminToggle('${photo.id}')">
+        <div class="admin-check">${sel ? '✓' : ''}</div>
+        <img src="${photo.url}" loading="lazy">
+        <div class="admin-item-meta">${escHtml(photo.name)}</div>
+      </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+  updateAdminToolbar();
+}
+
+function adminToggle(id) {
+  adminSelected.has(id) ? adminSelected.delete(id) : adminSelected.add(id);
+  renderAdminGrid();
+}
+
+function adminSelectAll() {
+  if (adminSelected.size === photos.length) {
+    adminSelected.clear();
+  } else {
+    photos.forEach(p => adminSelected.add(p.id));
+  }
+  renderAdminGrid();
+}
+
+function updateAdminToolbar() {
+  const n = adminSelected.size;
+  document.getElementById('admin-sel-count').textContent = n ? `${n} selected` : '';
+  const delBtn = document.getElementById('admin-del-btn');
+  delBtn.disabled = n === 0;
+  delBtn.textContent = n > 0 ? `Delete (${n})` : 'Delete';
+}
+
+async function adminDeleteSelected() {
+  if (!adminSelected.size) return;
+  if (!confirm(`Permanently delete ${adminSelected.size} photo(s)?`)) return;
+  showToast('Deleting…', 'info');
+  try {
+    const batch = db.batch();
+    adminSelected.forEach(id => {
+      batch.delete(db.collection('photos').doc(id));
+      batch.delete(db.collection('photos_fullres').doc(id));
+    });
+    await batch.commit();
+    adminSelected.clear();
+    showToast('Deleted', 'success');
+  } catch (err) {
+    showToast('Delete failed', 'info');
+  }
+}
+
+async function adminDownloadAll() {
+  if (photos.length === 0) { showToast('No photos to download', 'info'); return; }
+  showToast('Building ZIP…', 'info');
+  try {
+    const snap = await db.collection('photos_fullres').get();
+    const zip = new JSZip();
+    snap.docs.forEach((doc, i) => {
+      const base64 = doc.data().url.split(',')[1];
+      zip.file(`photo_${String(i + 1).padStart(3, '0')}.jpg`, base64, { base64: true });
+    });
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'wedding-photos.zip';
+    a.click();
+    showToast('Download started!', 'success');
+  } catch (err) {
+    showToast('Download failed', 'info');
+  }
 }
 </script>
 </body>
