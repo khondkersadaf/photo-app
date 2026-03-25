@@ -684,6 +684,23 @@
     margin-top: 4px;
     letter-spacing: 0.05em;
   }
+  .lightbox-download {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    background: var(--cream);
+    color: var(--film);
+    border: none;
+    border-radius: 100px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
 
   /* ═══════════════════════════════════════
      TOAST
@@ -849,6 +866,10 @@
   <div class="lightbox-meta">
     <div class="lightbox-meta-name" id="lb-name"></div>
     <div class="lightbox-meta-time" id="lb-time"></div>
+    <button class="lightbox-download" onclick="downloadPhoto()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+      Download
+    </button>
   </div>
 </div>
 
@@ -864,7 +885,6 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
 // ── Firebase Config ──
@@ -879,7 +899,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 // ── App State ──
 const MAX_SHOTS = 15;
@@ -984,20 +1003,41 @@ function takePhoto() {
   addPhoto(dataUrl);
 }
 
+function resizeImage(dataUrl, maxWidth, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
 async function addPhoto(dataUrl) {
   if (shotsRemaining <= 0) return;
 
   shutterBtn.disabled = true;
-  showToast('Uploading…', 'info');
+  showToast('Saving…', 'info');
 
   try {
-    const blob = await (await fetch(dataUrl)).blob();
-    const filename = `photos/${Date.now()}_${guestName.replace(/\s+/g, '_')}.jpg`;
-    const ref = storage.ref(filename);
-    await ref.put(blob);
-    const url = await ref.getDownloadURL();
+    const [thumbnail, fullres] = await Promise.all([
+      resizeImage(dataUrl, 600, 0.6),
+      resizeImage(dataUrl, 1600, 0.85)
+    ]);
 
-    await db.collection('photos').add({ url, name: guestName, timestamp: Date.now() });
+    const docRef = await db.collection('photos').add({
+      url: thumbnail,
+      name: guestName,
+      timestamp: Date.now()
+    });
+
+    await db.collection('photos_fullres').doc(docRef.id).set({ url: fullres });
 
     shotsRemaining--;
     updateShotCounter();
@@ -1009,8 +1049,8 @@ async function addPhoto(dataUrl) {
       showToast(`Shot captured! ${shotsRemaining} left`, 'success');
     }
   } catch (err) {
-    console.error('Upload failed:', err);
-    showToast('Upload failed — try again', 'info');
+    console.error('Save failed:', err);
+    showToast('Save failed — try again', 'info');
     shutterBtn.disabled = false;
   }
 }
@@ -1098,9 +1138,12 @@ function renderGallery() {
 }
 
 // ── Lightbox ──
+let activeLightboxId = null;
+
 function openLightbox(id) {
   const photo = photos.find(p => p.id === id);
   if (!photo) return;
+  activeLightboxId = id;
   document.getElementById('lightbox-img').src = photo.url;
   document.getElementById('lb-name').textContent = photo.name;
   const t = new Date(photo.timestamp);
@@ -1111,6 +1154,21 @@ function openLightbox(id) {
 }
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
+  activeLightboxId = null;
+}
+
+async function downloadPhoto() {
+  if (!activeLightboxId) return;
+  showToast('Preparing download…', 'info');
+  try {
+    const doc = await db.collection('photos_fullres').doc(activeLightboxId).get();
+    const a = document.createElement('a');
+    a.href = doc.data().url;
+    a.download = `photo_${activeLightboxId}.jpg`;
+    a.click();
+  } catch (err) {
+    showToast('Download failed', 'info');
+  }
 }
 document.getElementById('lightbox').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) closeLightbox();
