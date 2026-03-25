@@ -936,6 +936,13 @@ startBtn.addEventListener('click', startCamera);
 async function startCamera() {
   guestName = nameInput.value.trim();
   document.getElementById('cam-guest-name').textContent = guestName;
+
+  // Restore remaining shots from Firestore
+  const existing = await db.collection('photos').where('name', '==', guestName).get();
+  shotsRemaining = Math.max(0, MAX_SHOTS - existing.size);
+  updateShotCounter();
+  if (shotsRemaining <= 0) shutterBtn.disabled = true;
+
   showScreen('camera');
   bottomNav.classList.remove('hidden');
 
