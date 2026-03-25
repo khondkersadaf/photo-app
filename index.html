@@ -861,12 +861,31 @@
 <!-- QR Code library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
 <script>
+// ── Firebase Config ──
+// Replace these values with your own from Firebase Console → Project Settings
+const firebaseConfig = {
+  apiKey: "AIzaSyClV1_VWRxwNmA-Ympu3atBfiAL4eAR8Ik",
+  authDomain: "photo-app-5737b.firebaseapp.com",
+  projectId: "photo-app-5737b",
+  storageBucket: "photo-app-5737b.firebasestorage.app",
+  messagingSenderId: "108549728336",
+  appId: "1:108549728336:web:7ebfa16e0d40e786458955"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+
 // ── App State ──
 const MAX_SHOTS = 15;
 let guestName = '';
 let shotsRemaining = MAX_SHOTS;
-let photos = []; // { dataUrl, name, timestamp }
+let photos = []; // { id, url, name, timestamp } — synced from Firestore
 let cameraStream = null;
 let facingMode = 'environment';
 let cameraAvailable = false;
@@ -965,23 +984,34 @@ function takePhoto() {
   addPhoto(dataUrl);
 }
 
-function addPhoto(dataUrl) {
+async function addPhoto(dataUrl) {
   if (shotsRemaining <= 0) return;
 
-  photos.unshift({
-    dataUrl,
-    name: guestName,
-    timestamp: Date.now()
-  });
+  shutterBtn.disabled = true;
+  showToast('Uploading…', 'info');
 
-  shotsRemaining--;
-  updateShotCounter();
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const filename = `photos/${Date.now()}_${guestName.replace(/\s+/g, '_')}.jpg`;
+    const ref = storage.ref(filename);
+    await ref.put(blob);
+    const url = await ref.getDownloadURL();
 
-  if (shotsRemaining <= 0) {
-    shutterBtn.disabled = true;
-    showToast("That's a wrap! All shots used", 'info');
-  } else {
-    showToast(`Shot captured! ${shotsRemaining} left`, 'success');
+    await db.collection('photos').add({ url, name: guestName, timestamp: Date.now() });
+
+    shotsRemaining--;
+    updateShotCounter();
+
+    if (shotsRemaining <= 0) {
+      showToast("That's a wrap! All shots used", 'info');
+    } else {
+      shutterBtn.disabled = false;
+      showToast(`Shot captured! ${shotsRemaining} left`, 'success');
+    }
+  } catch (err) {
+    console.error('Upload failed:', err);
+    showToast('Upload failed — try again', 'info');
+    shutterBtn.disabled = false;
   }
 }
 
@@ -989,6 +1019,15 @@ function updateShotCounter() {
   shotsLeftEl.textContent = shotsRemaining;
   shotCounterEl.classList.toggle('low', shotsRemaining <= 3);
 }
+
+// ── Real-time Gallery (Firestore) ──
+db.collection('photos').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+  photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  galleryCountEl.textContent = `${photos.length} moment${photos.length !== 1 ? 's' : ''} captured`;
+  if (document.getElementById('gallery-screen').classList.contains('active')) {
+    renderGallery();
+  }
+});
 
 // ── Switch Camera ──
 document.getElementById('switch-cam-btn').addEventListener('click', async () => {
@@ -1045,8 +1084,8 @@ function renderGallery() {
     const time = new Date(photo.timestamp);
     const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     html += `
-      <div class="gallery-item" onclick="openLightbox(${i})" style="animation-delay:${i * 0.08}s">
-        <img src="${photo.dataUrl}" alt="Photo by ${photo.name}" loading="lazy">
+      <div class="gallery-item" onclick="openLightbox('${photo.id}')" style="animation-delay:${i * 0.08}s">
+        <img src="${photo.url}" alt="Photo by ${escHtml(photo.name)}" loading="lazy">
         <div class="gallery-item-meta">
           <div class="gallery-item-name">${escHtml(photo.name)}</div>
           <div class="gallery-item-time">${timeStr}</div>
@@ -1059,9 +1098,10 @@ function renderGallery() {
 }
 
 // ── Lightbox ──
-function openLightbox(index) {
-  const photo = photos[index];
-  document.getElementById('lightbox-img').src = photo.dataUrl;
+function openLightbox(id) {
+  const photo = photos.find(p => p.id === id);
+  if (!photo) return;
+  document.getElementById('lightbox-img').src = photo.url;
   document.getElementById('lb-name').textContent = photo.name;
   const t = new Date(photo.timestamp);
   document.getElementById('lb-time').textContent = t.toLocaleString([], {
