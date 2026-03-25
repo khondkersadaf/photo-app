@@ -1256,6 +1256,15 @@ function updateShotCounter() {
 db.collection('photos').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
   photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   galleryCountEl.textContent = `${photos.length} moment${photos.length !== 1 ? 's' : ''} captured`;
+
+  // Recalculate shots remaining for current guest in real-time
+  if (guestName) {
+    const myCount = photos.filter(p => p.name === guestName).length;
+    shotsRemaining = Math.max(0, MAX_SHOTS - myCount);
+    updateShotCounter();
+    shutterBtn.disabled = shotsRemaining <= 0;
+  }
+
   if (document.getElementById('gallery-screen').classList.contains('active')) renderGallery();
   if (document.getElementById('admin-screen').classList.contains('active')) renderAdminGrid();
 });
