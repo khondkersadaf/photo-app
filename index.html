@@ -21,6 +21,7 @@
     --text: #2D2B28;
     --text-light: #8A857A;
     --grain-opacity: 0.04;
+    --nav-h: 58px; /* bottom nav height excluding safe-area */
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -285,13 +286,13 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 20px 24px 36px;
+    padding: clamp(10px, 2.5dvh, 20px) 24px calc(clamp(10px, 2.5dvh, 20px) + var(--nav-h) + env(safe-area-inset-bottom));
     background: rgba(26,26,24,0.95);
     backdrop-filter: blur(10px);
   }
 
   .cam-side-btn {
-    width: 44px; height: 44px;
+    width: clamp(36px, 11vmin, 48px); height: clamp(36px, 11vmin, 48px);
     border-radius: 50%;
     border: none;
     background: rgba(245,240,232,0.08);
@@ -303,10 +304,10 @@
     transition: all 0.2s;
   }
   .cam-side-btn:hover { background: rgba(245,240,232,0.15); }
-  .cam-side-btn svg { width: 20px; height: 20px; }
+  .cam-side-btn svg { width: clamp(16px, 5vmin, 22px); height: clamp(16px, 5vmin, 22px); }
 
   .shutter-btn {
-    width: 72px; height: 72px;
+    width: clamp(60px, 16vmin, 80px); height: clamp(60px, 16vmin, 80px);
     border-radius: 50%;
     border: 3px solid var(--cream);
     background: transparent;
@@ -595,7 +596,7 @@
     display: flex;
     justify-content: center;
     gap: 2px;
-    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    padding: 4px 12px calc(4px + env(safe-area-inset-bottom));
     background: rgba(245,240,232,0.9);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -609,10 +610,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 4px;
+    gap: 3px;
+    padding: 5px 4px;
     font-family: 'Space Mono', monospace;
-    font-size: 9px;
+    font-size: clamp(8px, 2.2vw, 10px);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-light);
@@ -622,7 +623,7 @@
     border-radius: 10px;
     transition: all 0.2s;
   }
-  .bnav-btn svg { width: 22px; height: 22px; }
+  .bnav-btn svg { width: clamp(18px, 5vw, 22px); height: clamp(18px, 5vw, 22px); }
   .bnav-btn.active {
     color: var(--text);
     background: rgba(45,43,40,0.06);
